@@ -1,11 +1,25 @@
 import { Request, Response } from 'express';
 import { LearnerServices } from './learner.service';
+import Joi from 'joi';
+import LearnerValidationSchema from './learner.validation';
 
 const createLearner = async (req: Request, res: Response) => {
   try {
     const { learner: learnerData } = req.body;
+    const { error, value } = LearnerValidationSchema.validate(learnerData, {
+      abortEarly: false, // show all errors, not just the first
+      convert: true, // convert date string to actual Date object, etc.
+    });
 
     const result = await LearnerServices.createLearnerIntoDb(learnerData);
+
+    if (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal Server Error',
+        error,
+      });
+    }
 
     res.status(200).json({
       success: true,
